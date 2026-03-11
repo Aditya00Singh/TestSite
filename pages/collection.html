@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>my collection ✦</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Mono:wght@300;400&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../filesasset/collection.css">
+  <script src="../data/products.js"></script>
+  <script src="../data/cart.js"></script>
+  <style>
+    .card-add-btn {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: rgba(196,161,101,.1); border: 1px solid rgba(196,161,101,.3);
+      color: #c4a165; font-size: 18px; cursor: none;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: all .22s; line-height: 1;
+    }
+    .card-add-btn:hover { background: rgba(196,161,101,.22); border-color: #c4a165; }
+    .cart-count { transition: transform .22s cubic-bezier(.34,1.56,.64,1); }
+  </style>
+</head>
+<body>
+      <nav>
+    <a href="..\index.html" class="nav-logo">SBM&G</a>
+    <ul class="nav-links">
+      <li><a href="#">Collections</a></li>
+      <li><a href="#">Catalogue</a></li>
+      <li><a href="#">Projects</a></li>
+      <li><a href="#">Showroom</a></li>
+    </ul>
+    <a href="cart.html" class="nav-cart">CART <span class="cart-count" id="cart-count">0</span></a>
+  </nav>
+
+<div id="cursor"><div id="cursor-dot"></div><div id="cursor-ring"></div></div>
+<div class="amb amb-1"></div>
+<div class="amb amb-2"></div>
+<div class="amb amb-3"></div>
+
+<div class="wrapper">
+  <header>
+    <div>
+      <div class="eyebrow">SBM&amp;G Catalogue</div>
+      <h1>our <em>stone</em><br>collection</h1>
+    </div>
+    
+    <div class="header-meta">
+      <div class="live-pill"><div class="live-dot"></div>LIVE COLLECTION</div>
+      <div class="count-badge"><span id="count-num">0</span> items curated</div>
+    </div>
+  </header>
+
+  <div class="divider"></div>
+
+  <div class="marquee-wrap"><div class="marquee-track" id="marquee-track"></div></div>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <span class="search-icon">&#8981;</span>
+      <input type="text" id="search-input" placeholder="search collection..." />
+    </div>
+    <div class="filter-tags" id="filter-tags">
+      <button class="tag-btn active" data-cat="all">all</button>
+    </div>
+    <div class="view-toggle">
+      <button class="view-btn active" id="grid-btn" title="Grid view">&#10798;</button>
+      <button class="view-btn" id="list-btn" title="List view">&#8801;</button>
+    </div>
+  </div>
+
+  <div class="grid-area">
+    <div id="collection-grid">
+      <div class="state-box"><div class="icon">&#9671;</div><span>loading your collection&#8230;</span></div>
+    </div>
+    <!-- pagination controls -->
+    <div class="pagination" id="pagination-controls">
+      <button class="page-btn" id="prev-btn" disabled>Previous</button>
+      <span class="page-info" id="page-info">Page 1 of 1</span>
+      <button class="page-btn" id="next-btn" disabled>Next</button>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-sig">crafted with taste &#10022;</div>
+    <div class="footer-meta" id="footer-meta">&#8212;</div>
+  </footer>
+</div>
+
+<script>
+(function() {
+  "use strict";
+
+  /* ---- Cursor ---- */
+  var cdot  = document.getElementById("cursor-dot");
+  var cring = document.getElementById("cursor-ring");
+  var mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener("mousemove", function(e) { mx = e.clientX; my = e.clientY; });
+  (function loop() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    cdot.style.left  = mx + "px"; cdot.style.top  = my + "px";
+    cring.style.left = rx + "px"; cring.style.top = ry + "px";
+    requestAnimationFrame(loop);
+  })();
+  document.addEventListener("mouseover", function(e) {
+    var big = e.target.closest(".card") || e.target.closest("button") || e.target.closest("input");
+    cring.style.width  = big ? "56px" : "36px";
+    cring.style.height = big ? "56px" : "36px";
+  });
+
+  /* ---- State ---- */
+  var allItems = [];
+  var activeCat = "all";
+  var searchQ = "";
+  var listView = false;
+  var currentPage = 1;
+  var itemsPerPage = 9;
+
+  /* ---- Map SBMG_PRODUCTS to the card schema ---- */
+  function loadFromSharedData() {
+    if (!window.SBMG_PRODUCTS || !window.SBMG_PRODUCTS.length) return [];
+    return window.SBMG_PRODUCTS.map(function(p, idx) {
+      return {
+        _idx:        idx,
+        name:        p.name,
+        category:    p.category,
+        description: p.description + (p.origin ? " Origin: " + p.origin + "." : "") + (p.finish ? " Finish: " + p.finish + "." : ""),
+        thumbnail:   p.thumbnail,
+        tags:        p.tags,
+        price:       p.price,
+        year:        p.origin,   // repurpose year field for origin in collection view
+        badge:       p.badge
+      };
+    });
+  }
+
+  /* ---- Bootstrap ---- */
+  function init() {
+    allItems = loadFromSharedData();
+    render();
+  }
+
+  /* ---- Render pipeline ---- */
+  function render() { buildFilters(); buildMarquee(); renderGrid(); updateCount(); }
+
+  function buildFilters() {
+    var cats = ["all"], seen = {};
+    for (var i = 0; i < allItems.length; i++) {
+      var c = allItems[i].category;
+      if (c && !seen[c]) { cats.push(c); seen[c] = 1; }
+    }
+    var wrap = document.getElementById("filter-tags");
+    wrap.innerHTML = "";
+    cats.forEach(function(cat) {
+      var btn = document.createElement("button");
+      btn.className = "tag-btn" + (cat === activeCat ? " active" : "");
+      btn.setAttribute("data-cat", cat);
+      btn.textContent = cat;
+      btn.addEventListener("click", function() {
+        activeCat = cat;
+        currentPage = 1;
+        wrap.querySelectorAll(".tag-btn").forEach(function(b) { b.classList.remove("active"); });
+        btn.classList.add("active");
+        renderGrid(); updateCount();
+      });
+      wrap.appendChild(btn);
+    });
+  }
+
+  function buildMarquee() {
+    var words = [];
+    for (var i = 0; i < allItems.length; i++) {
+      var it = allItems[i];
+      if (it.name) words.push(it.name);
+      if (it.category) words.push(it.category);
+      (it.tags || "").split(",").forEach(function(t) { if (t.trim()) words.push(t.trim()); });
+    }
+    var doubled = words.concat(words);
+    document.getElementById("marquee-track").innerHTML = doubled.map(function(w) {
+      return "<span><b>&#10022;</b>" + esc(w) + "</span>";
+    }).join("");
+  }
+
+  function filtered() {
+    return allItems.filter(function(it) {
+      var mc = activeCat === "all" || it.category === activeCat;
+      var q  = searchQ.toLowerCase();
+      var ms = !q ||
+        (it.name        || "").toLowerCase().indexOf(q) !== -1 ||
+        (it.description || "").toLowerCase().indexOf(q) !== -1 ||
+        (it.tags        || "").toLowerCase().indexOf(q) !== -1;
+      return mc && ms;
+    });
+  }
+
+  function renderGrid() {
+    var grid = document.getElementById("collection-grid");
+    if (listView) { grid.classList.add("list-view"); } else { grid.classList.remove("list-view"); }
+
+    var items = filtered();
+    var totalPages = Math.ceil(items.length / itemsPerPage) || 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+
+    if (!items.length) {
+      grid.innerHTML = "<div class=\"state-box\"><div class=\"icon\">&#9671;</div><span>nothing matches &#12289;&#12288;&#12290;</span></div>";
+      updatePaginationControls();
+      return;
+    }
+
+    var start = (currentPage - 1) * itemsPerPage;
+    var pageItems = items.slice(start, start + itemsPerPage);
+
+    var buf = "";
+    for (var i = 0; i < pageItems.length; i++) {
+      var it    = pageItems[i];
+      var delay = Math.min((start + i) * 0.05 + 0.05, 0.6).toFixed(2);
+      var thumb = it.thumbnail || "";
+
+      var imgH = thumb
+        ? '<img src="' + esc(thumb) + '" alt="' + esc(it.name || '') + '" loading="lazy" onerror="this.hidden=true" />'
+        : '<div class="img-placeholder">&#9671;</div>';
+
+      var catH = it.category
+        ? "<div class=\"card-category\">" + esc(it.category) + "</div>"
+        : "";
+
+      var badgeH = it.badge
+        ? "<div class=\"card-badge\">" + esc(it.badge) + "</div>"
+        : "";
+
+      var chips = (it.tags || "").split(",")
+        .map(function(t) { return t.trim(); })
+        .filter(Boolean).slice(0, 3)
+        .map(function(t) { return "<span class=\"tag-chip\">" + esc(t) + "</span>"; })
+        .join("");
+
+      var priceH = it.price ? "<div class=\"card-price\">" + esc(it.price) + "</div>" : "";
+      var yrH   = it.year ? "<div class=\"card-year\">" + esc(it.year) + "</div>" : "";
+      var descH = it.description ? "<div class=\"card-desc\">" + esc(it.description) + "</div>" : "";
+
+      var idx = it._idx !== undefined ? it._idx : 0;
+      buf += '<div class="card" style="animation-delay:' + delay + 's;cursor:pointer;" data-product-id="' + idx + '">';
+      buf +=   "<div class=\"card-img-wrap\">" + imgH + catH + badgeH;
+      buf +=     "<div class=\"card-fav\" onclick=\"window._toggleFav(this)\" title=\"save\">&#9825;</div>";
+      buf +=   "</div>";
+      buf +=   "<div class=\"card-body\">";
+      buf +=     "<div class=\"card-name\">" + esc(it.name || "Untitled") + "</div>";
+      buf +=     descH;
+      var addBtnH = '<button class="card-add-btn" data-add-id="' + idx + '" title="Add to cart">' +
+        (window.SBMGCart ? '+' : '+') + '</button>';
+      buf +=     "<div class=\"card-footer\"><div class=\"card-tags\">" + chips + "</div>" + priceH + addBtnH + "</div>";
+      buf +=   "</div>";
+      buf += "</div>";
+    }
+    grid.innerHTML = buf;
+    updatePaginationControls();
+  }
+
+  function updateCount() {
+    var n = filtered().length;
+    document.getElementById("count-num").textContent = n;
+    var d = new Date();
+    var mo = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getMonth()];
+    document.getElementById("footer-meta").textContent =
+      allItems.length + " total \u00b7 " + n + " visible \u00b7 " + d.getDate() + " " + mo + " " + d.getFullYear();
+  }
+
+  function esc(s) {
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  /* ---- Pagination controls ---- */
+  function updatePaginationControls() {
+    var prev = document.getElementById("prev-btn");
+    var next = document.getElementById("next-btn");
+    var info = document.getElementById("page-info");
+    var items = filtered();
+    var totalPages = Math.ceil(items.length / itemsPerPage) || 1;
+    prev.disabled = currentPage <= 1;
+    next.disabled = currentPage >= totalPages;
+    info.textContent = "Page " + currentPage + " of " + totalPages;
+  }
+
+  document.getElementById("prev-btn").addEventListener("click", function() {
+    if (currentPage > 1) { currentPage--; renderGrid(); updateCount(); }
+  });
+  document.getElementById("next-btn").addEventListener("click", function() {
+    var items = filtered();
+    var totalPages = Math.ceil(items.length / itemsPerPage) || 1;
+    if (currentPage < totalPages) { currentPage++; renderGrid(); updateCount(); }
+  });
+
+  /* ---- Global fav toggle ---- */
+  window._toggleFav = function(el) {
+    el.classList.toggle("liked");
+    el.innerHTML = el.classList.contains("liked") ? "&#9829;" : "&#9825;";
+    el.style.transform = "scale(1.5)";
+    setTimeout(function() { el.style.transform = ""; }, 200);
+  };
+
+  /* ---- Search ---- */
+  document.getElementById("search-input").addEventListener("input", function(e) {
+    searchQ = e.target.value;
+    currentPage = 1;
+    renderGrid(); updateCount();
+  });
+
+  /* ---- View toggle ---- */
+  document.getElementById("grid-btn").addEventListener("click", function() {
+    listView = false;
+    document.getElementById("grid-btn").classList.add("active");
+    document.getElementById("list-btn").classList.remove("active");
+    renderGrid();
+  });
+  document.getElementById("list-btn").addEventListener("click", function() {
+    listView = true;
+    document.getElementById("list-btn").classList.add("active");
+    document.getElementById("grid-btn").classList.remove("active");
+    renderGrid();
+  });
+
+  // Delegated click handler
+  document.getElementById("collection-grid").addEventListener("click", function(e) {
+    // Quick-add button
+    var addBtn = e.target.closest(".card-add-btn");
+    if (addBtn) {
+      e.stopPropagation();
+      var idx = parseInt(addBtn.dataset.addId, 10);
+      var prod = window.SBMG_PRODUCTS && window.SBMG_PRODUCTS[idx];
+      if (prod && window.SBMGCart) {
+        window.SBMGCart.add({ id: idx, name: prod.name, price: prod.price, thumbnail: prod.thumbnail });
+        window.SBMGCart.toast("\u2713 " + prod.name + " added to cart");
+        addBtn.textContent = "\u2713";
+        addBtn.style.color = "#7db87a";
+        setTimeout(function() { addBtn.textContent = "+"; addBtn.style.color = ""; }, 1500);
+      }
+      return;
+    }
+    // Fav toggle
+    if (e.target.closest(".card-fav")) return;
+    // Open product page
+    var card = e.target.closest(".card");
+    if (card && card.dataset.productId !== undefined) {
+      window.open("products.html?id=" + card.dataset.productId, "_blank");
+    }
+  });
+
+  init();
+})();
+</script>
+</body>
+</html>

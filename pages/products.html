@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Product — SBM&amp;G</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet" />
+  <script src="../data/products.js"></script>
+  <script src="../data/cart.js"></script>
+  <link rel="stylesheet" href="../filesasset/products.css"/>
+
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<nav>
+  <a href="../index.html" class="nav-logo">SBM&amp;G</a>
+  <ul class="nav-links">
+    <li><a href="collection.html">Collections</a></li>
+    <li><a href="#">Catalogue</a></li>
+    <li><a href="#">Projects</a></li>
+    <li><a href="#">Showroom</a></li>
+  </ul>
+  <a href="cart.html" class="nav-cart">CART <span class="cart-count" id="cart-count">0</span></a>
+</nav>
+
+<div class="page">
+  <div class="breadcrumb" id="breadcrumb">
+    <a href="../index.html">Home</a>
+    <span class="sep">›</span>
+    <a href="collection.html">Collection</a>
+    <span class="sep">›</span>
+    <span id="breadcrumb-name">Loading…</span>
+  </div>
+
+  <div id="product-main-wrap"></div>
+  <div id="product-below-wrap"></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ── Cursor ── */
+  var cur  = document.getElementById('cursor');
+  var ring = document.getElementById('cursor-ring');
+  var mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', function (e) { mx = e.clientX; my = e.clientY; });
+  (function loop() {
+    rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
+    cur.style.left  = mx + 'px'; cur.style.top  = my + 'px';
+    ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+    requestAnimationFrame(loop);
+  })();
+  document.addEventListener('mouseover', function (e) {
+    var big = e.target.closest('button') || e.target.closest('a') || e.target.closest('.related-card');
+    cur.style.width   = big ? '18px' : '8px';
+    cur.style.height  = big ? '18px' : '8px';
+    ring.style.width  = big ? '52px' : '34px';
+    ring.style.height = big ? '52px' : '34px';
+  });
+
+  /* ── Cart state (backed by SBMGCart shared engine) ── */
+  var _selectedSize   = '24×48"';
+  var _selectedFinish = 'Polished';
+
+  /* ── Helpers ── */
+  function stars(n) {
+    var s = '';
+    for (var i = 1; i <= 5; i++) s += (i <= n ? '★' : '☆');
+    return s;
+  }
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function discount(price) {
+    // parse "$185/sq ft" -> number, add ~15% original
+    var m = String(price).match(/\d+/);
+    if (!m) return null;
+    var base = parseInt(m[0]);
+    var orig = Math.round(base * 1.18 / 5) * 5;
+    return '$' + orig + price.replace(/\$\d+/, '');
+  }
+
+  /* ── Load product ── */
+  var params  = new URLSearchParams(window.location.search);
+  var id      = parseInt(params.get('id') || '0', 10);
+  var products = window.SBMG_PRODUCTS || [];
+  var p = products[id];
+
+  if (!p) {
+    document.getElementById('product-main-wrap').innerHTML =
+      '<div class="not-found"><h2>Product not found</h2><p>Go back to <a href="collection.html" style="color:var(--gold)">collection</a>.</p></div>';
+    return;
+  }
+
+  /* ── Update page title & breadcrumb ── */
+  document.title = p.name + ' — SBM&G';
+  document.getElementById('breadcrumb-name').textContent = p.name;
+
+  /* ── Related products ── */
+  var related = products.filter(function (x, i) {
+    return i !== id && x.category === p.category;
+  }).slice(0, 4);
+  if (related.length < 4) {
+    var extras = products.filter(function (x, i) {
+      return i !== id && x.category !== p.category;
+    });
+    related = related.concat(extras).slice(0, 4);
+  }
+
+  /* ── Static reviews data ── */
+  var reviews = [
+    { name: 'Arjun Mehta',   initial: 'A', rating: 5, date: '12 Jan 2026', verified: true,
+      body: 'Absolutely stunning slab. The veining matched the sample exactly and the polished finish catches light beautifully. Our architect was impressed with the consistency across all 40 sq ft.' },
+    { name: 'Priya Sharma',  initial: 'P', rating: 5, date: '3 Mar 2026',  verified: true,
+      body: 'Used this for our kitchen island. The quality is premium — thick, well-cut, and the colour is even richer in person. Delivery was on time and well-packed.' },
+    { name: 'Rohan Kapoor',  initial: 'R', rating: 4, date: '18 Feb 2026', verified: false,
+      body: 'Great product, colour is exactly as described. Minus one star because lead time was a week longer than quoted, but the result is worth it.' },
+    { name: 'Sneha Iyer',    initial: 'S', rating: 5, date: '27 Dec 2025', verified: true,
+      body: 'We sourced samples from five suppliers before settling on SBM&G. The difference in quality is immediately obvious. Will be ordering for the bathroom too.' },
+  ];
+
+  /* ── Breakdown bars ── */
+  var breakdownData = [[5,18],[4,5],[3,2],[2,1],[1,0]];
+  var totalRev = breakdownData.reduce(function(a,b){return a+b[1];},0);
+
+  /* ── Render main layout ── */
+  var mainHTML = '<div class="product-main">';
+
+  /* Left: gallery */
+  mainHTML += '<div class="gallery">';
+  mainHTML +=   '<div class="gallery-hero">';
+  mainHTML +=     p.thumbnail
+    ? '<img id="main-img" src="' + esc(p.thumbnail) + '" alt="' + esc(p.name) + '" />'
+    : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--text-faint);font-size:48px;">◇</div>';
+  if (p.badge) mainHTML += '<div class="gallery-badge">' + esc(p.badge) + '</div>';
+  mainHTML +=     '<button class="gallery-wish" id="wish-btn" title="Save">♡</button>';
+  mainHTML +=   '</div>';
+
+  // Thumbnail strip - use same image repeated with slight brightness variation for demo
+  if (p.thumbnail) {
+    mainHTML += '<div class="gallery-thumbs">';
+    var angles = ['','&crop=faces&fit=crop','&sat=-20','&blur=0&brightness=10'];
+    for (var t = 0; t < 4; t++) {
+      mainHTML += '<div class="gallery-thumb' + (t===0?' active':'') + '" data-img="' + esc(p.thumbnail) + '">';
+      mainHTML +=   '<img src="' + esc(p.thumbnail) + '" alt="view ' + (t+1) + '" />';
+      mainHTML += '</div>';
+    }
+    mainHTML += '</div>';
+  }
+
+  // Info chips
+  mainHTML += '<div class="gallery-info-strip">';
+  if (p.origin) mainHTML += '<div class="info-chip"><div class="info-chip-label">Origin</div><div class="info-chip-val">' + esc(p.origin) + '</div></div>';
+  if (p.finish) mainHTML += '<div class="info-chip"><div class="info-chip-label">Finish</div><div class="info-chip-val">' + esc(p.finish) + '</div></div>';
+  mainHTML +=   '<div class="info-chip"><div class="info-chip-label">Rating</div><div class="info-chip-val">' + (p.rating||5) + '.0 / 5</div></div>';
+  mainHTML += '</div>';
+  mainHTML += '</div>'; // .gallery
+
+  /* Right: details */
+  mainHTML += '<div class="details">';
+  mainHTML +=   '<div class="details-eyebrow">' + esc(p.category) + '</div>';
+  mainHTML +=   '<h1 class="details-name">' + esc(p.name) + '</h1>';
+
+  mainHTML +=   '<div class="rating-row">';
+  mainHTML +=     '<span class="stars">' + stars(p.rating||5) + '</span>';
+  mainHTML +=     '<span class="rating-count">(' + totalRev + ' reviews)</span>';
+  mainHTML +=     '<span class="rating-badge">✓ In Stock</span>';
+  mainHTML +=   '</div>';
+
+  var origPrice = discount(p.price);
+  mainHTML += '<div class="price-block">';
+  mainHTML +=   '<div class="price-main">' + esc(p.price).replace(/\//, '<small>/') + '</small></div>';
+  if (origPrice) {
+    mainHTML += '<div class="price-row">';
+    mainHTML +=   '<span class="price-original">' + esc(origPrice) + '</span>';
+    mainHTML +=   '<span class="price-discount">15% OFF</span>';
+    mainHTML += '</div>';
+  }
+  mainHTML +=   '<div class="price-note">✦ Free sample tile included with every order</div>';
+  mainHTML += '</div>';
+
+  mainHTML += '<div class="detail-divider"></div>';
+
+  // Finish selector
+  var finishes = ['Polished', 'Honed', 'Leathered', 'Brushed'];
+  mainHTML += '<div class="selector-label">Finish — <span>' + esc(p.finish || finishes[0]) + '</span></div>';
+  mainHTML += '<div class="finish-options">';
+  finishes.forEach(function(f) {
+    mainHTML += '<button class="finish-btn' + (f === (p.finish||finishes[0]) ? ' active' : '') + '">' + f + '</button>';
+  });
+  mainHTML += '</div>';
+
+  // Size selector
+  var sizes = ['12×12"', '18×18"', '24×24"', '24×48"', '48×48"'];
+  mainHTML += '<div class="selector-label">Size — <span>24×48"</span></div>';
+  mainHTML += '<div class="size-options">';
+  sizes.forEach(function(s, i) {
+    mainHTML += '<button class="size-btn' + (i===3?' active':'') + '">' + s + '</button>';
+  });
+  mainHTML += '</div>';
+
+  mainHTML += '<div class="detail-divider"></div>';
+
+  // Qty + cart
+  mainHTML += '<div class="qty-cta-row">';
+  mainHTML +=   '<div class="qty-wrap">';
+  mainHTML +=     '<button class="qty-btn" id="qty-minus">−</button>';
+  mainHTML +=     '<div class="qty-val" id="qty-val">1</div>';
+  mainHTML +=     '<button class="qty-btn" id="qty-plus">+</button>';
+  mainHTML +=   '</div>';
+  mainHTML +=   '<button class="btn-cart" id="btn-cart">Add to Cart</button>';
+  mainHTML += '</div>';
+  mainHTML += '<button class="btn-buy" id="btn-buy">Buy Now — ' + esc(p.price) + '</button>';
+  mainHTML += '<div class="cta-note">Free shipping on orders above ₹50,000 · GST inclusive</div>';
+
+  // Perks
+  mainHTML += '<div class="perks">';
+  mainHTML +=   '<div class="perk"><div class="perk-icon">🚚</div><div class="perk-text"><strong>Free Delivery</strong><span>To major cities · 5–10 business days</span></div></div>';
+  mainHTML +=   '<div class="perk"><div class="perk-icon">🪨</div><div class="perk-text"><strong>Free Sample</strong><span>Request a tile sample before ordering</span></div></div>';
+  mainHTML +=   '<div class="perk"><div class="perk-icon">↩</div><div class="perk-text"><strong>30-Day Returns</strong><span>Unused slabs accepted, no questions</span></div></div>';
+  mainHTML += '</div>';
+
+  mainHTML += '</div>'; // .details
+  mainHTML += '</div>'; // .product-main
+
+  document.getElementById('product-main-wrap').innerHTML = mainHTML;
+
+  /* ── Render below-fold ── */
+  var belowHTML = '<div class="content-section">';
+
+  /* Tabs */
+  belowHTML += '<div class="tabs">';
+  belowHTML +=   '<button class="tab-btn active" data-tab="specs">Specifications</button>';
+  belowHTML +=   '<button class="tab-btn" data-tab="desc">Description</button>';
+  belowHTML +=   '<button class="tab-btn" data-tab="reviews">Reviews (' + totalRev + ')</button>';
+  belowHTML +=   '<button class="tab-btn" data-tab="seller">Ask Seller</button>';
+  belowHTML += '</div>';
+
+  /* Specs panel */
+  belowHTML += '<div class="tab-panel active" id="tab-specs">';
+  belowHTML +=   '<div class="specs-grid">';
+  var specRows = [
+    ['Material',     p.category],
+    ['Origin',       p.origin || '—'],
+    ['Finish',       p.finish || '—'],
+    ['Thickness',    '18–20 mm'],
+    ['Mohs Hardness', p.category==='Granite'?'6–7':p.category==='Marble'?'3–4':'7+'],
+    ['Water Absorption', p.category==='Porcelain'?'< 0.1%':p.category==='Granite'?'< 0.4%':'< 0.5%'],
+    ['Slip Resistance',  'R10 – R11'],
+    ['Min Order',    '20 sq ft'],
+    ['Lead Time',    '3–7 business days'],
+  ];
+  specRows.forEach(function(row) {
+    belowHTML += '<div class="spec-item"><div class="spec-key">' + esc(row[0]) + '</div><div class="spec-val">' + esc(row[1]) + '</div></div>';
+  });
+  belowHTML +=   '</div>';
+  belowHTML += '</div>';
+
+  /* Desc panel */
+  belowHTML += '<div class="tab-panel" id="tab-desc">';
+  belowHTML +=   '<div class="desc-body">';
+  belowHTML +=   '<p><strong>' + esc(p.name) + '</strong> — ' + esc(p.description) + '</p>';
+  belowHTML +=   '<p>Each slab is hand-selected at source for consistency in veining, colour, and density. Our quality assurance team inspects every piece before it leaves the warehouse, ensuring what arrives at your project site matches the sample exactly.</p>';
+  belowHTML +=   '<p>Suitable for <strong>kitchen countertops, bathroom vanities, flooring, feature walls</strong>, and exterior cladding. Compatible with standard stone adhesives and grouts. Sealing recommended for marble and natural stone.</p>';
+  belowHTML +=   '</div>';
+  belowHTML += '</div>';
+
+  /* Reviews panel */
+  belowHTML += '<div class="tab-panel" id="tab-reviews">';
+  belowHTML +=   '<div class="reviews-header">';
+  belowHTML +=     '<div><div class="reviews-score">' + (p.rating||5) + '.0<small>/5</small></div><div style="margin-top:8px;color:var(--gold);letter-spacing:3px;">★★★★★</div></div>';
+  belowHTML +=     '<div class="reviews-breakdown">';
+  breakdownData.forEach(function(row) {
+    var pct = totalRev ? Math.round(row[1]/totalRev*100) : 0;
+    belowHTML += '<div class="breakdown-row"><span class="breakdown-label">' + row[0] + '</span><div class="breakdown-bar-wrap"><div class="breakdown-bar" style="width:' + pct + '%"></div></div><span class="breakdown-count">' + row[1] + '</span></div>';
+  });
+  belowHTML +=     '</div>';
+  belowHTML +=     '<button class="write-review-btn">Write a Review</button>';
+  belowHTML +=   '</div>';
+  belowHTML +=   '<div class="review-list">';
+  reviews.forEach(function(r) {
+    belowHTML += '<div class="review-card">';
+    belowHTML +=   '<div class="review-top">';
+    belowHTML +=     '<div class="review-avatar">' + r.initial + '</div>';
+    belowHTML +=     '<div class="review-meta"><strong>' + esc(r.name) + '</strong><span>' + esc(r.date) + '</span></div>';
+    belowHTML +=     '<span class="review-stars">' + stars(r.rating) + '</span>';
+    if (r.verified) belowHTML += '<span class="review-verified">✓ Verified</span>';
+    belowHTML +=   '</div>';
+    belowHTML +=   '<div class="review-body">' + esc(r.body) + '</div>';
+    belowHTML +=   '<div class="review-helpful">Helpful? <button class="helpful-btn">👍 Yes</button><button class="helpful-btn">👎 No</button></div>';
+    belowHTML += '</div>';
+  });
+  belowHTML +=   '</div>';
+  belowHTML += '</div>';
+
+  /* Seller panel */
+  belowHTML += '<div class="tab-panel" id="tab-seller">';
+  belowHTML +=   '<div class="seller-section">';
+  belowHTML +=     '<div class="seller-left">';
+  belowHTML +=       '<h3>Talk to our <em>stone experts</em></h3>';
+  belowHTML +=       '<p>Our team of material specialists can help you with custom sizing, bulk pricing, installation guidance, and project-specific recommendations. We typically respond within 2 business hours.</p>';
+  belowHTML +=       '<div class="seller-contact-items">';
+  belowHTML +=         '<div class="seller-contact-item"><span class="seller-contact-icon">📍</span> Front CHC, Utraula Road, Mankapur, Gonda — 271302</div>';
+  belowHTML +=         '<div class="seller-contact-item"><span class="seller-contact-icon">🕐</span> Mon–Sat 9AM–7PM · Sun 10AM–4PM</div>';
+  belowHTML +=         '<div class="seller-contact-item"><span class="seller-contact-icon">✉</span> info@sbmg.in</div>';
+  belowHTML +=         '<div class="seller-contact-item"><span class="seller-contact-icon">📞</span> +91 98765 43210</div>';
+  belowHTML +=       '</div>';
+  belowHTML +=     '</div>';
+  belowHTML +=     '<div class="seller-form">';
+  belowHTML +=       '<div class="sf-row"><input class="sf-input" placeholder="Your name" /><input class="sf-input" placeholder="Phone number" /></div>';
+  belowHTML +=       '<input class="sf-input" placeholder="Email address" />';
+  belowHTML +=       '<select class="sf-select sf-input"><option value="">Enquiry type…</option><option>Pricing &amp; Availability</option><option>Custom Cut &amp; Size</option><option>Bulk / Trade Order</option><option>Sample Request</option><option>Installation Guidance</option></select>';
+  belowHTML +=       '<textarea class="sf-textarea" placeholder="Tell us about your project — dimensions, finish preference, timeline…"></textarea>';
+  belowHTML +=       '<button class="sf-submit" id="sf-submit">Send Enquiry →</button>';
+  belowHTML +=     '</div>';
+  belowHTML +=   '</div>';
+  belowHTML += '</div>';
+
+  /* Related */
+  if (related.length) {
+    belowHTML += '<div class="section-hd"><h2>More <em>like this</em></h2></div>';
+    belowHTML += '<div class="related-grid">';
+    related.forEach(function(r, ri) {
+      var ridx = products.indexOf(r);
+      belowHTML += '<div class="related-card" data-ridx="' + ridx + '">';
+      belowHTML +=   '<div class="related-img">';
+      if (r.thumbnail) belowHTML += '<img src="' + esc(r.thumbnail) + '" alt="' + esc(r.name) + '" loading="lazy" onerror="this.hidden=true" />';
+      belowHTML +=   '</div>';
+      belowHTML +=   '<div class="related-body">';
+      belowHTML +=     '<div class="related-cat">' + esc(r.category) + '</div>';
+      belowHTML +=     '<div class="related-name">' + esc(r.name) + '</div>';
+      belowHTML +=     '<div class="related-price">' + esc(r.price) + '</div>';
+      belowHTML +=   '</div>';
+      belowHTML += '</div>';
+    });
+    belowHTML += '</div>';
+  }
+
+  belowHTML += '</div>'; // .content-section
+  document.getElementById('product-below-wrap').innerHTML = belowHTML;
+
+  /* ── Interactions ── */
+
+  // Wishlist
+  var wishBtn = document.getElementById('wish-btn');
+  wishBtn.addEventListener('click', function () {
+    wishBtn.classList.toggle('liked');
+    wishBtn.textContent = wishBtn.classList.contains('liked') ? '♥' : '♡';
+    wishBtn.style.transform = 'scale(1.4)';
+    setTimeout(function () { wishBtn.style.transform = ''; }, 200);
+  });
+
+  // Thumbnail clicks
+  document.querySelectorAll('.gallery-thumb').forEach(function (thumb) {
+    thumb.addEventListener('click', function () {
+      document.querySelectorAll('.gallery-thumb').forEach(function (t) { t.classList.remove('active'); });
+      thumb.classList.add('active');
+      var mainImg = document.getElementById('main-img');
+      if (mainImg) mainImg.src = thumb.getAttribute('data-img');
+    });
+  });
+
+  // Finish selector
+  document.querySelectorAll('.finish-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.finish-btn').forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      _selectedFinish = btn.textContent;
+      document.querySelector('.selector-label span') && (document.querySelectorAll('.selector-label span')[0].textContent = btn.textContent);
+    });
+  });
+
+  // Size selector
+  document.querySelectorAll('.size-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.size-btn').forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      _selectedSize = btn.textContent;
+      var labels = document.querySelectorAll('.selector-label span');
+      if (labels[1]) labels[1].textContent = btn.textContent;
+    });
+  });
+
+  // Qty
+  var qtyVal = document.getElementById('qty-val');
+  var qty = 1;
+  document.getElementById('qty-minus').addEventListener('click', function () {
+    if (qty > 1) { qty--; qtyVal.textContent = qty; }
+  });
+  document.getElementById('qty-plus').addEventListener('click', function () {
+    qty++; qtyVal.textContent = qty;
+  });
+
+  // Add to cart
+  var cartBtn = document.getElementById('btn-cart');
+  cartBtn.addEventListener('click', function () {
+    if (window.SBMGCart) {
+      window.SBMGCart.add({
+        id:        id,
+        name:      p.name,
+        price:     p.price,
+        thumbnail: p.thumbnail || '',
+        qty:       qty,
+        size:      _selectedSize,
+        finish:    _selectedFinish
+      });
+      window.SBMGCart.toast('\u2713 ' + p.name + ' added to cart');
+    }
+    cartBtn.textContent = '\u2713 Added!';
+    cartBtn.style.background  = 'rgba(125,184,122,.15)';
+    cartBtn.style.borderColor = 'rgba(125,184,122,.4)';
+    cartBtn.style.color       = 'var(--green)';
+    setTimeout(function () {
+      cartBtn.textContent = 'Add to Cart';
+      cartBtn.style.background  = '';
+      cartBtn.style.borderColor = '';
+      cartBtn.style.color       = '';
+    }, 2200);
+  });
+
+  // Buy now — add to cart then go to cart page
+  document.getElementById('btn-buy').addEventListener('click', function () {
+    if (window.SBMGCart) {
+      window.SBMGCart.add({
+        id:        id,
+        name:      p.name,
+        price:     p.price,
+        thumbnail: p.thumbnail || '',
+        qty:       qty,
+        size:      _selectedSize,
+        finish:    _selectedFinish
+      });
+    }
+    window.location.href = 'cart.html';
+  });
+
+  // Helpful buttons
+  document.querySelectorAll('.helpful-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      btn.style.borderColor = 'rgba(196,161,101,.4)';
+      btn.style.color = 'var(--gold)';
+    });
+  });
+
+  // Tabs
+  document.querySelectorAll('.tab-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); });
+      document.querySelectorAll('.tab-panel').forEach(function (p) { p.classList.remove('active'); });
+      btn.classList.add('active');
+      var panel = document.getElementById('tab-' + btn.getAttribute('data-tab'));
+      if (panel) panel.classList.add('active');
+    });
+  });
+
+  // Seller form
+  document.getElementById('sf-submit') && document.getElementById('sf-submit').addEventListener('click', function () {
+    var btn = document.getElementById('sf-submit');
+    btn.textContent = '✓ Enquiry Sent!';
+    btn.style.background = 'rgba(125,184,122,.15)';
+    btn.style.borderColor = 'rgba(125,184,122,.35)';
+    btn.style.color = 'var(--green)';
+    setTimeout(function () {
+      btn.textContent = 'Send Enquiry →';
+      btn.style.background = '';
+      btn.style.borderColor = '';
+      btn.style.color = '';
+    }, 3000);
+  });
+
+  // Write review button
+  document.querySelector('.write-review-btn') && document.querySelector('.write-review-btn').addEventListener('click', function() {
+    document.querySelector('[data-tab="seller"]').click();
+  });
+
+  // Related cards click
+  document.getElementById('product-below-wrap').addEventListener('click', function(e) {
+    var card = e.target.closest('.related-card');
+    if (card && card.dataset.ridx !== undefined) {
+      window.location.href = 'products.html?id=' + card.dataset.ridx;
+    }
+  });
+
+})();
+</script>
+</body>
+</html>

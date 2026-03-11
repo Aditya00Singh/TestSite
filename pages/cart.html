@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cart — SBM&amp;G</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet" />
+  <script src="../data/products.js"></script>
+  <script>
+/* ============================================================
+   SBM&G Cart Engine  –  cart.js
+   Drop in: /data/cart.js
+   Include BEFORE your page script on every page.
+   Exposes: window.SBMGCart
+   ============================================================ */
+window.SBMGCart = (function () {
+  'use strict';
+  var KEY = 'sbmg_cart';
+
+  /* ── persistence ── */
+  function load() {
+    try { return JSON.parse(localStorage.getItem(KEY) || '[]'); }
+    catch (e) { return []; }
+  }
+  function save(items) {
+    localStorage.setItem(KEY, JSON.stringify(items));
+  }
+
+  /* ── read ── */
+  function count() {
+    return load().reduce(function (s, i) { return s + (i.qty || 0); }, 0);
+  }
+
+  /* ── write ── */
+  function add(item) {
+    /* item shape: { id, name, price, thumbnail, qty?, size?, finish? } */
+    var items = load();
+    var found = null;
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].id === item.id &&
+          items[i].size   === (item.size   || '24\u00d748"') &&
+          items[i].finish === (item.finish || 'Polished')) {
+        found = items[i];
+        break;
+      }
+    }
+    if (found) {
+      found.qty += (item.qty || 1);
+    } else {
+      items.push({
+        id:        item.id,
+        name:      item.name      || '',
+        price:     item.price     || '',
+        thumbnail: item.thumbnail || '',
+        size:      item.size      || '24\u00d748"',
+        finish:    item.finish    || 'Polished',
+        qty:       item.qty       || 1
+      });
+    }
+    save(items);
+    syncBadge();
+    flashBadge();
+  }
+
+  function remove(id, size, finish) {
+    save(load().filter(function (x) {
+      return !(x.id === id && x.size === size && x.finish === finish);
+    }));
+    syncBadge();
+  }
+
+  function updateQty(id, size, finish, qty) {
+    if (qty <= 0) { remove(id, size, finish); return; }
+    var items = load();
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].id === id && items[i].size === size && items[i].finish === finish) {
+        items[i].qty = qty; break;
+      }
+    }
+    save(items);
+    syncBadge();
+  }
+
+  function clear() { save([]); syncBadge(); }
+
+  /* ── UI sync ── */
+  function syncBadge() {
+    var n = count();
+    document.querySelectorAll('.cart-count').forEach(function (el) {
+      el.textContent = n;
+    });
+  }
+
+  function flashBadge() {
+    document.querySelectorAll('.cart-count').forEach(function (el) {
+      el.style.transition = 'transform 0.22s cubic-bezier(.34,1.56,.64,1)';
+      el.style.transform  = 'scale(1.7)';
+      setTimeout(function () { el.style.transform = ''; }, 260);
+    });
+  }
+
+  /* ── toast notification ── */
+  function toast(msg) {
+    var t = document.getElementById('sbmg-toast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = 'sbmg-toast';
+      t.style.cssText = [
+        'position:fixed','bottom:32px','left:50%',
+        'transform:translateX(-50%) translateY(80px)',
+        'background:#1a1815','border:1px solid rgba(196,161,101,.35)',
+        'color:#e0c98e','padding:14px 28px','border-radius:100px',
+        'font-size:13px','letter-spacing:.06em','z-index:99999',
+        'transition:transform .35s cubic-bezier(.23,1,.32,1), opacity .35s',
+        'opacity:0','pointer-events:none','white-space:nowrap',
+        'box-shadow:0 8px 40px rgba(0,0,0,.5)'
+      ].join(';');
+      document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.style.opacity = '1';
+    t.style.transform = 'translateX(-50%) translateY(0)';
+    clearTimeout(t._timer);
+    t._timer = setTimeout(function () {
+      t.style.opacity = '0';
+      t.style.transform = 'translateX(-50%) translateY(20px)';
+    }, 2400);
+  }
+
+  /* ── auto-sync badge on every page ── */
+  function autoSync() { syncBadge(); }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', autoSync);
+  } else {
+    autoSync();
+  }
+
+  return {
+    add: add,
+    remove: remove,
+    updateQty: updateQty,
+    clear: clear,
+    count: count,
+    load: load,
+    syncBadge: syncBadge,
+    toast: toast
+  };
+})();
+
+  </script>
+  <link rel="stylesheet" href="../filesasset/cart.css"/>
+ 
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<nav>
+  <a href="../index.html" class="nav-logo">SBM&amp;G</a>
+  <ul class="nav-links">
+    <li><a href="collection.html">Collections</a></li>
+    <li><a href="#">Catalogue</a></li>
+    <li><a href="#">Projects</a></li>
+    <li><a href="#">Showroom</a></li>
+  </ul>
+  <a href="cart.html" class="nav-cart">CART <span class="cart-count" id="cart-count">0</span></a>
+</nav>
+
+<div class="page">
+  <div class="cart-header">
+    <div class="cart-eyebrow">Your Selection</div>
+    <h1 class="cart-title">Your <em>cart</em></h1>
+  </div>
+
+  <div class="cart-layout">
+    <!-- Items -->
+    <div>
+      <div class="items-header">
+        <span>Product</span>
+        <span>Qty</span>
+        <span>Price</span>
+        <span></span>
+      </div>
+      <div id="cart-items-wrap"></div>
+    </div>
+
+    <!-- Summary -->
+    <div class="cart-summary" id="cart-summary">
+      <div class="summary-title">Order Summary</div>
+
+      <div class="summary-row">
+        <span class="label">Subtotal</span>
+        <span class="val" id="summary-subtotal">—</span>
+      </div>
+      <div class="summary-row">
+        <span class="label">GST (18%)</span>
+        <span class="val" id="summary-gst">—</span>
+      </div>
+      <div class="summary-row">
+        <span class="label">Shipping</span>
+        <span class="val free" id="summary-ship">Free</span>
+      </div>
+
+      <div class="summary-divider"></div>
+
+      <div class="summary-total">
+        <span class="label">Total</span>
+        <span class="val" id="summary-total">—</span>
+      </div>
+
+      <button class="btn-checkout" id="btn-checkout">Place Order →</button>
+      <a href="collection.html" class="btn-continue">← Continue Shopping</a>
+
+      <div class="coupon-wrap">
+        <div class="coupon-label">Promo Code</div>
+        <div class="coupon-row">
+          <input class="coupon-input" id="coupon-input" placeholder="SBMG10" />
+          <button class="coupon-btn" id="coupon-apply">Apply</button>
+        </div>
+      </div>
+
+      <div class="summary-perks">
+        <div class="summary-perk"><span class="summary-perk-icon">🚚</span> Free delivery on orders above ₹50,000</div>
+        <div class="summary-perk"><span class="summary-perk-icon">🪨</span> Free sample tile with every order</div>
+        <div class="summary-perk"><span class="summary-perk-icon">↩</span> 30-day returns on unused slabs</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recommended -->
+  <div class="reco-section" id="reco-section"></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ── Cursor ── */
+  var cur  = document.getElementById('cursor');
+  var ring = document.getElementById('cursor-ring');
+  var mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', function (e) { mx = e.clientX; my = e.clientY; });
+  (function loop() {
+    rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
+    cur.style.left = mx + 'px'; cur.style.top = my + 'px';
+    ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+    requestAnimationFrame(loop);
+  })();
+  document.addEventListener('mouseover', function (e) {
+    var big = e.target.closest('button') || e.target.closest('a') || e.target.closest('.reco-card');
+    cur.style.width  = big ? '18px' : '8px';
+    cur.style.height = big ? '18px' : '8px';
+    ring.style.width  = big ? '50px' : '34px';
+    ring.style.height = big ? '50px' : '34px';
+  });
+
+  /* ── Price parser ── */
+  function parsePrice(priceStr) {
+    /* Handles "$185/sq ft", "₹4500/sq ft", "Contact for price" etc. */
+    var m = String(priceStr).match(/[\d,]+/);
+    return m ? parseFloat(m[0].replace(/,/g,'')) : 0;
+  }
+  function formatINR(n) {
+    /* Convert USD price roughly to INR for display (1 USD ~ 83 INR) */
+    var inr = Math.round(n * 83);
+    return '\u20b9' + inr.toLocaleString('en-IN');
+  }
+  function formatDisplay(priceStr, qty) {
+    var base = parsePrice(priceStr);
+    if (!base) return '—';
+    return formatINR(base * qty);
+  }
+
+  /* ── Render cart ── */
+  function renderCart() {
+    var items = window.SBMGCart.load();
+    var wrap  = document.getElementById('cart-items-wrap');
+
+    if (!items.length) {
+      wrap.innerHTML = '<div class="cart-empty">' +
+        '<div class="cart-empty-icon">◇</div>' +
+        '<h3>Your cart is empty</h3>' +
+        '<p>Explore our curated stone collection and add pieces you love.</p>' +
+        '<a href="collection.html" class="btn-browse">Browse Collection →</a>' +
+        '</div>';
+      updateSummary([]);
+      return;
+    }
+
+    var products = window.SBMG_PRODUCTS || [];
+    var buf = '';
+    items.forEach(function (item, i) {
+      var prod = products[item.id] || {};
+      var cat  = prod.category || '';
+      var delay = (i * 0.06).toFixed(2);
+
+      var thumbHTML = item.thumbnail
+        ? '<img src="' + item.thumbnail + '" alt="' + item.name + '" onerror="this.hidden=true" />'
+        : '<div class="item-thumb-placeholder">\u25c7</div>';
+
+      var cartKey = item.id + '|' + item.size + '|' + item.finish;
+      buf += '<div class="cart-item" style="animation-delay:' + delay + 's" data-cart-key="' + cartKey.replace(/"/g,'&quot;') + '">';
+
+      /* Product info */
+      buf += '<div class="item-info">';
+      buf +=   '<div class="item-thumb">' + thumbHTML + '</div>';
+      buf +=   '<div>';
+      if (cat) buf += '<div class="item-category">' + cat + '</div>';
+      buf +=     '<div class="item-name">' + item.name + '</div>';
+      buf +=     '<div class="item-meta">';
+      buf +=       '<span>' + item.size + '</span>';
+      buf +=       '<span>' + item.finish + '</span>';
+      buf +=     '</div>';
+      buf +=   '</div>';
+      buf += '</div>';
+
+      /* Qty stepper */
+      buf += '<div class="item-qty">';
+      buf +=   '<div class="qty-wrap">';
+      buf +=     '<button class="qty-btn qty-minus" title="Decrease">\u2212</button>';
+      buf +=     '<div class="qty-num">' + item.qty + '</div>';
+      buf +=     '<button class="qty-btn qty-plus" title="Increase">+</button>';
+      buf +=   '</div>';
+      buf += '</div>';
+
+      /* Price */
+      buf += '<div class="item-price">';
+      buf +=   formatDisplay(item.price, item.qty);
+      buf +=   '<small>' + item.price + ' \u00d7 ' + item.qty + '</small>';
+      buf += '</div>';
+
+      /* Remove */
+      buf += '<button class="item-remove" title="Remove">\u00d7</button>';
+
+      buf += '</div>';
+    });
+
+    wrap.innerHTML = buf;
+    updateSummary(items);
+    attachItemListeners();
+  }
+
+  function updateSummary(items) {
+    var products = window.SBMG_PRODUCTS || [];
+    var subtotalINR = 0;
+    items.forEach(function (item) {
+      var base = parsePrice(item.price);
+      subtotalINR += Math.round(base * 83) * item.qty;
+    });
+    var gst   = Math.round(subtotalINR * 0.18);
+    var total = subtotalINR + gst;
+    var fmt = function(n) { return '\u20b9' + n.toLocaleString('en-IN'); };
+
+    document.getElementById('summary-subtotal').textContent = items.length ? fmt(subtotalINR) : '—';
+    document.getElementById('summary-gst').textContent      = items.length ? fmt(gst) : '—';
+    document.getElementById('summary-ship').textContent     = subtotalINR >= 50000 ? 'Free' : fmt(1500);
+    document.getElementById('summary-ship').className       = 'val' + (subtotalINR >= 50000 ? ' free' : '');
+    document.getElementById('summary-total').textContent    = items.length ? fmt(total + (subtotalINR >= 50000 ? 0 : 1500)) : '—';
+  }
+
+  function attachItemListeners() {
+    document.querySelectorAll('.cart-item').forEach(function (row) {
+      /* data-cart-key = "id|size|finish" stored on the row.
+         Using a single composite attr avoids the unescaped-quote problem
+         that breaks data-size="24x48"" in HTML. */
+      var key    = (row.dataset.cartKey || row.dataset.id + '||');
+      var first  = key.indexOf('|');
+      var last   = key.lastIndexOf('|');
+      var id     = parseInt(key.slice(0, first), 10);
+      var size   = key.slice(first + 1, last);
+      var finish = key.slice(last + 1);
+
+      row.querySelector('.qty-minus').addEventListener('click', function () {
+        var allItems = window.SBMGCart.load();
+        var item = allItems.find(function (x) {
+          return x.id === id && x.size === size && x.finish === finish;
+        });
+        if (item) { window.SBMGCart.updateQty(id, size, finish, item.qty - 1); renderCart(); }
+      });
+
+      row.querySelector('.qty-plus').addEventListener('click', function () {
+        var allItems = window.SBMGCart.load();
+        var item = allItems.find(function (x) {
+          return x.id === id && x.size === size && x.finish === finish;
+        });
+        if (item) { window.SBMGCart.updateQty(id, size, finish, item.qty + 1); renderCart(); }
+      });
+
+      row.querySelector('.item-remove').addEventListener('click', function () {
+        row.style.opacity    = '0';
+        row.style.transform  = 'translateX(20px)';
+        row.style.transition = 'opacity .25s, transform .25s';
+        setTimeout(function () {
+          window.SBMGCart.remove(id, size, finish);
+          renderCart();
+        }, 260);
+      });
+    });
+  }
+
+  /* ── Checkout ── */
+  document.getElementById('btn-checkout').addEventListener('click', function () {
+    var items = window.SBMGCart.load();
+    if (!items.length) {
+      window.SBMGCart.toast('Your cart is empty!');
+      return;
+    }
+    var names = items.map(function (i) { return i.qty + '\u00d7 ' + i.name; }).join('\n');
+    alert('Order placed! Our team will contact you within 2 hours.\n\n' + names + '\n\nThank you for choosing SBM\u0026G.');
+    window.SBMGCart.clear();
+    renderCart();
+  });
+
+  /* ── Coupon ── */
+  document.getElementById('coupon-apply').addEventListener('click', function () {
+    var code = document.getElementById('coupon-input').value.trim().toUpperCase();
+    if (code === 'SBMG10' || code === 'STONE10') {
+      window.SBMGCart.toast('\u2713 Coupon applied — 10% off!');
+    } else {
+      window.SBMGCart.toast('Invalid coupon code.');
+    }
+  });
+
+  /* ── Recommended products ── */
+  function renderReco() {
+    var products = window.SBMG_PRODUCTS || [];
+    if (!products.length) return;
+    var cartIds = window.SBMGCart.load().map(function (i) { return i.id; });
+    var reco = products.filter(function (p, i) { return cartIds.indexOf(i) === -1; }).slice(0, 4);
+    if (!reco.length) reco = products.slice(0, 4);
+
+    var sec = document.getElementById('reco-section');
+    var buf = '<div class="reco-header"><h2>You might also <em>like</em></h2></div><div class="reco-grid">';
+    reco.forEach(function (p) {
+      var ridx = products.indexOf(p);
+      buf += '<div class="reco-card" data-reco-id="' + ridx + '">';
+      buf +=   '<div class="reco-img">';
+      if (p.thumbnail) buf += '<img src="' + p.thumbnail + '" alt="' + p.name + '" loading="lazy" onerror="this.hidden=true" />';
+      buf +=   '</div>';
+      buf +=   '<div class="reco-body">';
+      buf +=     '<div class="reco-cat">'  + p.category + '</div>';
+      buf +=     '<div class="reco-name">' + p.name + '</div>';
+      buf +=     '<div class="reco-footer">';
+      buf +=       '<span class="reco-price">' + p.price + '</span>';
+      buf +=       '<button class="reco-add" data-reco-id="' + ridx + '" title="Add to cart">+</button>';
+      buf +=     '</div>';
+      buf +=   '</div>';
+      buf += '</div>';
+    });
+    buf += '</div>';
+    sec.innerHTML = buf;
+
+    /* Click card → product page */
+    sec.querySelectorAll('.reco-card').forEach(function (card) {
+      card.addEventListener('click', function (e) {
+        if (e.target.closest('.reco-add')) return;
+        window.location.href = 'products.html?id=' + card.dataset.recoId;
+      });
+    });
+
+    /* Quick-add from reco */
+    sec.querySelectorAll('.reco-add').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var idx  = parseInt(btn.dataset.recoId, 10);
+        var prod = products[idx];
+        if (!prod) return;
+        window.SBMGCart.add({ id: idx, name: prod.name, price: prod.price, thumbnail: prod.thumbnail });
+        window.SBMGCart.toast('\u2713 ' + prod.name + ' added to cart');
+        btn.textContent = '\u2713';
+        btn.style.color = '#7db87a';
+        setTimeout(function () { btn.textContent = '+'; btn.style.color = ''; renderCart(); renderReco(); }, 1400);
+      });
+    });
+  }
+
+  /* ── Init ── */
+  renderCart();
+  renderReco();
+
+})();
+</script>
+</body>
+</html>
