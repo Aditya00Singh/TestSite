@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SBM&G - Shree Balaji Marble & Granite</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css">
+  <script src="data/products.js"></script>
+  <style>.tag-cta{background:transparent;border:none;cursor:none;font-family:inherit;font-size:inherit;color:inherit;padding:0;}</style>
+</head>
+<body>
+
+  <!-- Custom Cursor -->
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- NAV -->
+  <nav>
+    <a href="#" class="nav-logo">SBM&G</a>
+    <ul class="nav-links">
+      <li><a href=".\pages\collection.html">Collections</a></li>
+      <li><a href="#">Catalogue</a></li>
+      <li><a href="#">Projects</a></li>
+      <li><a href="#">Showroom</a></li>
+    </ul>
+    <a href="pages/cart.html" class="nav-cart">CART <span class="cart-count" id="cart-count">0</span></a>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-left">
+      <p class="hero-eyebrow">New Arrivals — Spring 2026</p>
+      <h1 class="hero-title">
+        Stone<br><em>refined</em><br>by time
+      </h1>
+      <p class="hero-sub">
+        Premium marble slabs, granite surfaces, and ceramic tiles — sourced from the world's finest quarries and crafted for spaces that endure.
+      </p>
+      <div class="hero-cta-row">
+        <a href=".\pages\collection.html" class="btn-primary">Explore Collection</a>
+        <a href="#" class="btn-ghost">Browse Catalogue <span class="arrow">→</span></a>
+      </div>
+    </div>
+
+    <div class="hero-right">
+      <div class="hero-image-wrap">
+        <div class="hero-image-bg">
+          <!-- Decorative ring shapes -->
+          <div class="shape-circle shape-circle-lg"></div>
+          <div class="shape-circle shape-circle-sm"></div>
+          <!-- Marble tile SVG silhouette centered -->
+          <div class="flex-center">
+            <svg width="300" height="360" viewBox="0 0 300 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Marble slab outline -->
+              <rect x="40" y="30" width="220" height="300" rx="3"
+                fill="rgba(196,161,101,0.08)" stroke="rgba(196,161,101,0.4)" stroke-width="1.5"/>
+              <!-- Marble vein lines -->
+              <path d="M60 80 C100 110 130 90 180 140 C210 165 200 200 240 220"
+                fill="none" stroke="rgba(196,161,101,0.25)" stroke-width="1.5"/>
+              <path d="M80 180 C110 160 150 200 190 185 C220 172 230 210 255 230"
+                fill="none" stroke="rgba(196,161,101,0.18)" stroke-width="1"/>
+              <path d="M50 260 C90 240 120 270 160 255 C195 242 210 280 250 270"
+                fill="none" stroke="rgba(196,161,101,0.15)" stroke-width="1"/>
+              <path d="M100 50 C120 90 110 130 140 160"
+                fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="8" stroke-linecap="round"/>
+              <!-- Tile grid overlay -->
+              <line x1="40" y1="180" x2="260" y2="180" stroke="rgba(196,161,101,0.12)" stroke-width="1" stroke-dasharray="6 4"/>
+              <line x1="150" y1="30" x2="150" y2="330" stroke="rgba(196,161,101,0.12)" stroke-width="1" stroke-dasharray="6 4"/>
+              <!-- Corner accents -->
+              <rect x="40" y="30" width="18" height="18" fill="none" stroke="rgba(196,161,101,0.5)" stroke-width="1.5"/>
+              <rect x="242" y="30" width="18" height="18" fill="none" stroke="rgba(196,161,101,0.5)" stroke-width="1.5"/>
+              <rect x="40" y="312" width="18" height="18" fill="none" stroke="rgba(196,161,101,0.5)" stroke-width="1.5"/>
+              <rect x="242" y="312" width="18" height="18" fill="none" stroke="rgba(196,161,101,0.5)" stroke-width="1.5"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <!-- Product tag card -->
+      <div class="hero-product-tag">
+        <div class="tag-inner">
+          <div class="tag-label">Featured Slab</div>
+          <div class="tag-name">Calacatta Oro Marble</div>
+          <div class="tag-sub">Italian origin · Polished finish · 24×48"</div>
+        </div>
+        <div class="tag-footer">
+          <span class="tag-price">$185 / sq ft</span>
+          <button class="tag-cta" id="hero-add-btn">Add to bag →</button>
+        </div>
+      </div>
+      <div class="hero-num">01</div>
+    </div>
+
+    <div class="hero-scroll-hint">
+      <div class="scroll-line"></div>
+      Scroll
+    </div>
+  </section>
+
+  <!-- TICKER -->
+  <div class="ticker">
+    <div class="ticker-track">
+      <!-- duplicated for seamless loop -->
+      <span class="ticker-item"><span class="ticker-dot"></span>Free samples on request</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Sourced from 20+ global quarries</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Custom cuts & finishes available</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Bulk order discounts</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Expert installation guidance</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Spring 2026 Collection now live</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Free samples on request</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Sourced from 20+ global quarries</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Custom cuts & finishes available</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Bulk order discounts</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Expert installation guidance</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Spring 2026 Collection now live</span>
+    </div>
+  </div>
+
+  <!-- FEATURED PRODUCTS -->
+  <section>
+    <div class="section-header reveal">
+      <div>
+        <p class="section-eyebrow">Curated Selection</p>
+        <h2 class="section-title">Featured<br>Surfaces</h2>
+      </div>
+      <a href="pages/collection.html" class="section-link">View all products <span>→</span></a>
+    </div>
+
+    <div class="products-grid" id="featured-products-grid">
+
+      <!-- Card 1: Calacatta Oro Marble -->
+      <div class="product-card reveal">
+        <div class="product-img">
+          <div class="product-img-bg bg-1">
+            <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80"
+                 alt="Calacatta Oro Marble"
+                 class="product-img-element" loading="lazy" />
+          </div>
+          <div class="product-overlay"><button class="product-overlay-btn">Quick View</button></div>
+          <span class="product-badge badge-new">New</span>
+          <button class="product-wish">&#9825;</button>
+        </div>
+        <div class="product-info">
+          <div class="product-meta">
+            <span class="product-category">Marble</span>
+            <span class="product-rating">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+          </div>
+          <p class="product-name" data-idx="0">Calacatta Oro Marble</p>
+          <div class="product-footer">
+            <p class="product-price">$185/sq ft <span>Samples free</span></p>
+            <button class="product-add-btn">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Black Galaxy Granite -->
+      <div class="product-card reveal reveal-delay-1">
+        <div class="product-img">
+          <div class="product-img-bg bg-2">
+            <img src="https://images.unsplash.com/photo-1605276374104-dee2a0ed3cd6?w=600&q=80"
+                 alt="Black Galaxy Granite"
+                 class="product-img-element" loading="lazy" />
+          </div>
+          <div class="product-overlay"><button class="product-overlay-btn">Quick View</button></div>
+          <span class="product-badge badge-best">Bestseller</span>
+          <button class="product-wish">&#9825;</button>
+        </div>
+        <div class="product-info">
+          <div class="product-meta">
+            <span class="product-category">Granite</span>
+            <span class="product-rating">&#9733;&#9733;&#9733;&#9733;&#9734;</span>
+          </div>
+          <p class="product-name" data-idx="1">Black Galaxy Granite</p>
+          <div class="product-footer">
+            <p class="product-price">$95/sq ft</p>
+            <button class="product-add-btn">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Travertino Ceramic -->
+      <div class="product-card reveal reveal-delay-2">
+        <div class="product-img">
+          <div class="product-img-bg bg-3">
+            <img src="https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=600&q=80"
+                 alt="Travertino Ceramic"
+                 class="product-img-element" loading="lazy" />
+          </div>
+          <div class="product-overlay"><button class="product-overlay-btn">Quick View</button></div>
+          <button class="product-wish">&#9825;</button>
+        </div>
+        <div class="product-info">
+          <div class="product-meta">
+            <span class="product-category">Ceramic</span>
+            <span class="product-rating">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+          </div>
+          <p class="product-name" data-idx="2">Travertino Ceramic</p>
+          <div class="product-footer">
+            <p class="product-price">$48/sq ft</p>
+            <button class="product-add-btn">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 4: Grigio Porcelain -->
+      <div class="product-card reveal reveal-delay-3">
+        <div class="product-img">
+          <div class="product-img-bg bg-4">
+            <img src="https://images.unsplash.com/photo-1616047006789-b7af5afb8c20?w=600&q=80"
+                 alt="Grigio Porcelain"
+                 class="product-img-element" loading="lazy" />
+          </div>
+          <div class="product-overlay"><button class="product-overlay-btn">Quick View</button></div>
+          <span class="product-badge badge-new">New</span>
+          <button class="product-wish">&#9825;</button>
+        </div>
+        <div class="product-info">
+          <div class="product-meta">
+            <span class="product-category">Porcelain</span>
+            <span class="product-rating">&#9733;&#9733;&#9733;&#9733;&#9734;</span>
+          </div>
+          <p class="product-name" data-idx="3">Grigio Porcelain</p>
+          <div class="product-footer">
+            <p class="product-price">$62/sq ft <span>Samples free</span></p>
+            <button class="product-add-btn">+</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- EDITORIAL -->
+  <div class="editorial">
+    <div class="editorial-text reveal">
+      <p class="editorial-eyebrow">Our Heritage</p>
+      <h2 class="editorial-title">
+        Stone surfaces<br><em>built</em> to endure
+      </h2>
+      <p class="editorial-body">
+        We partner with master quarries across Italy, India, Turkey, and Brazil to deliver surfaces of uncompromising quality. Every slab in our catalogue is hand-selected for its veining, density, and enduring character.
+      </p>
+      <a href="#" class="btn-outline">Our Sourcing Story</a>
+    </div>
+    <div class="editorial-image reveal reveal-delay-2">
+      <div class="shape-circle shape-circle-xl"></div>
+      <div class="editorial-float">
+        <div class="float-label">Stone Varieties</div>
+        <div class="float-stat">200+</div>
+        <div class="float-note">From 18 countries worldwide</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CATEGORIES -->
+  <section>
+    <div class="section-header reveal">
+      <div>
+        <p class="section-eyebrow">Browse by Material</p>
+        <h2 class="section-title">Shop<br>By Stone</h2>
+      </div>
+      <a href="#" class="section-link">All categories <span>→</span></a>
+    </div>
+
+    <div class="categories-grid">
+      <div class="cat-card reveal">
+        <div class="cat-bg cat-c1">
+          <div class="flex-center opacity-3">
+            <div class="cat-shape-rect-vert"></div>
+          </div>
+        </div>
+        <div class="cat-overlay"></div>
+        <div class="cat-info">
+          <p class="cat-name">Marble</p>
+          <p class="cat-count">84 Varieties</p>
+        </div>
+      </div>
+      <div class="cat-card reveal reveal-delay-1">
+        <div class="cat-bg cat-c2">
+          <div class="flex-center opacity-3">
+            <div class="cat-shape-circle"></div>
+          </div>
+        </div>
+        <div class="cat-overlay"></div>
+        <div class="cat-info">
+          <p class="cat-name">Granite</p>
+          <p class="cat-count">62 Varieties</p>
+        </div>
+      </div>
+      <div class="cat-card reveal reveal-delay-2">
+        <div class="cat-bg cat-c3">
+          <div class="flex-center opacity-3">
+            <div class="cat-shape-rect-rotated"></div>
+          </div>
+        </div>
+        <div class="cat-overlay"></div>
+        <div class="cat-info">
+          <p class="cat-name">Ceramic Tiles</p>
+          <p class="cat-count">120 Designs</p>
+        </div>
+      </div>
+      <div class="cat-card reveal reveal-delay-3">
+        <div class="cat-bg cat-c4">
+          <div class="flex-center opacity-3">
+            <div class="cat-shape-circle-small"></div>
+          </div>
+        </div>
+        <div class="cat-overlay"></div>
+        <div class="cat-info">
+          <p class="cat-name">Porcelain</p>
+          <p class="cat-count">95 Designs</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <div class="contact-section">
+    <div class="contact-left reveal">
+      <p class="contact-eyebrow">Get In Touch</p>
+      <h2 class="contact-title">Let's build<br>something <em>lasting</em></h2>
+      <p class="contact-desc">Whether you're an architect, interior designer, contractor, or homeowner — our team is ready to help you find the perfect surface for your project.</p>
+      <div class="contact-info-row">
+        <div class="contact-info-item">
+          <div class="contact-info-icon">📍</div>
+          <div class="contact-info-text">
+            <span class="contact-info-label">Showroom & Store</span>
+            <span class="contact-info-value">Front CHC, Utraula Road<br>Mankapur, Gonda<br>Uttar Pradesh, India — 271302</span>
+          </div>
+        </div>
+        <div class="contact-info-item">
+          <div class="contact-info-icon">🕐</div>
+          <div class="contact-info-text">
+            <span class="contact-info-label">Showroom Hours</span>
+            <span class="contact-info-value">Mon – Sat: 9:00 AM – 7:00 PM<br>Sunday: 10:00 AM – 4:00 PM</span>
+          </div>
+        </div>
+        <div class="contact-info-item">
+          <div class="contact-info-icon-email">✉</div>
+          <div class="contact-info-text">
+            <span class="contact-info-label">Email Us</span>
+            <span class="contact-info-value"><a href="/cdn-cgi/l/email-protection#fb888e89829a8d9a958893929a9f928f829acdc8c2c9bb9c969a9297d5989496"><span class="__cf_email__" data-cfemail="3a494f48435b4c5b544952535b5e534e435b0c0903087a5d575b535614595557">[email&#160;protected]</span></a></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="contact-right reveal reveal-delay-2">
+      <p class="contact-eyebrow">Send a Message</p>
+      <div class="contact-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Your Name</label>
+            <input type="text" class="form-input" placeholder="e.g. Rahul Sharma" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone Number</label>
+            <input type="tel" class="form-input" placeholder="+91 98765 43210" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" class="form-input" placeholder="you@example.com" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="product-category">I'm interested in</label>
+          <select id="product-category" class="form-select form-input">
+            <option value="">Select a product category...</option>
+            <option>Marble Slabs</option>
+            <option>Granite Surfaces</option>
+            <option>Ceramic Tiles</option>
+            <option>Porcelain Tiles</option>
+            <option>Custom Cut & Finish</option>
+            <option>Bulk / Trade Order</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Your Message</label>
+          <textarea class="form-textarea" placeholder="Tell us about your project, size requirements, finish preferences..."></textarea>
+        </div>
+        <button class="form-submit">Send Message →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-top">
+      <div>
+        <div class="footer-brand-name">SBM&G</div>
+        <p class="footer-tagline">Premium marble, granite, ceramic and porcelain surfaces for spaces built to last.</p>
+        <div class="footer-address">
+          <p class="footer-address-label">Visit Our Showroom</p>
+          <p class="footer-address-line">Front CHC, Utraula Road</p>
+          <p class="footer-address-line">Mankapur, Gonda</p>
+          <p class="footer-address-line">Uttar Pradesh, India — 271302</p>
+          <a href="https://maps.google.com/?q=Mankapur,Gonda,UttarPradesh" target="_blank" rel="noopener noreferrer" class="footer-address-map">↗ Get Directions</a>
+        </div>
+      </div>
+      <div>
+        <p class="footer-col-title">Shop</p>
+        <ul class="footer-links">
+          <li><a href="#">New Arrivals</a></li>
+          <li><a href="#">Marble Slabs</a></li>
+          <li><a href="#">Granite</a></li>
+          <li><a href="#">Ceramic Tiles</a></li>
+          <li><a href="#">Clearance</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="footer-col-title">Company</p>
+        <ul class="footer-links">
+          <li><a href="#">Our Story</a></li>
+          <li><a href="#">Our Quarries</a></li>
+          <li><a href="#">Sustainability</a></li>
+          <li><a href="#">Trade Program</a></li>
+          <li><a href="#">Careers</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="footer-col-title">Help</p>
+        <ul class="footer-links">
+          <li><a href="#">Delivery & Returns</a></li>
+          <li><a href="#">Tile Calculator</a></li>
+          <li><a href="#">Care & Maintenance</a></li>
+          <li><a href="#">Contact Us</a></li>
+          <li><a href="#">FAQ</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Shree Balaji Marble & Granite. All rights reserved. Built with ❤️ and coffee</span>
+      <div class="footer-socials">
+        <a href="#">Instagram</a>
+        <a href="#">X</a>
+        <a href="#">Facebook</a>
+      </div>
+    </div>
+  </footer>
+
+  
+
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+    (function () {
+
+      /* ---- Nav scroll ---- */
+      var nav = document.querySelector('nav');
+      window.addEventListener('scroll', function () {
+        nav.classList.toggle('scrolled', window.scrollY > 20);
+      });
+
+      /* ---- Custom cursor ---- */
+      var cursor = document.getElementById('cursor');
+      var ring   = document.getElementById('cursorRing');
+      var mx = 0, my = 0, rx = 0, ry = 0;
+      document.addEventListener('mousemove', function (e) { mx = e.clientX; my = e.clientY; });
+      (function animCursor() {
+        cursor.style.left = mx + 'px';
+        cursor.style.top  = my + 'px';
+        rx += (mx - rx) * 0.12;
+        ry += (my - ry) * 0.12;
+        ring.style.left = rx + 'px';
+        ring.style.top  = ry + 'px';
+        requestAnimationFrame(animCursor);
+      })();
+
+      document.querySelectorAll('a, button, .product-card, .cat-card').forEach(function (el) {
+        el.addEventListener('mouseenter', function () {
+          cursor.style.width  = '22px';
+          cursor.style.height = '22px';
+          ring.style.width    = '56px';
+          ring.style.height   = '56px';
+          ring.style.opacity  = '0.5';
+        });
+        el.addEventListener('mouseleave', function () {
+          cursor.style.width  = '10px';
+          cursor.style.height = '10px';
+          ring.style.width    = '36px';
+          ring.style.height   = '36px';
+          ring.style.opacity  = '0.8';
+        });
+      });
+
+      /* ---- Wishlist toggle ---- */
+      document.querySelectorAll('.product-wish').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var liked = btn.getAttribute('data-liked') === 'true';
+          btn.setAttribute('data-liked', String(!liked));
+          btn.textContent = liked ? '\u2661' : '\u2665';
+          btn.style.transform = 'scale(1.4)';
+          setTimeout(function () { btn.style.transform = ''; }, 200);
+        });
+      });
+
+      /* ---- Scroll reveal ---- */
+      var revealEls = document.querySelectorAll('.reveal');
+      var obs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            obs.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.12 });
+      revealEls.forEach(function (el) { obs.observe(el); });
+
+      /* ---- Cart: wire product + buttons ---- */
+      document.querySelectorAll('.product-add-btn').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var card   = btn.closest('.product-card');
+          var nameEl = card && card.querySelector('.product-name[data-idx]');
+          if (!nameEl || !window.SBMGCart || !window.SBMG_PRODUCTS) return;
+          var idx  = parseInt(nameEl.dataset.idx, 10);
+          var prod = window.SBMG_PRODUCTS[idx];
+          if (!prod) return;
+          window.SBMGCart.add({ id: idx, name: prod.name, price: prod.price, thumbnail: prod.thumbnail });
+          window.SBMGCart.toast('\u2713 ' + prod.name + ' added to cart');
+          btn.textContent     = '\u2713';
+          btn.style.background = 'rgba(125,184,122,.15)';
+          setTimeout(function () { btn.textContent = '+'; btn.style.background = ''; }, 1500);
+        });
+      });
+
+      /* ---- Cart: hero Add to bag ---- */
+      var heroAddBtn = document.getElementById('hero-add-btn');
+      if (heroAddBtn) {
+        heroAddBtn.addEventListener('click', function () {
+          if (!window.SBMGCart || !window.SBMG_PRODUCTS || !window.SBMG_PRODUCTS[0]) return;
+          var prod = window.SBMG_PRODUCTS[0];
+          window.SBMGCart.add({ id: 0, name: prod.name, price: prod.price, thumbnail: prod.thumbnail });
+          window.SBMGCart.toast('\u2713 ' + prod.name + ' added to cart');
+          heroAddBtn.textContent = '\u2713 Added to bag';
+          setTimeout(function () { heroAddBtn.textContent = 'Add to bag \u2192'; }, 1800);
+        });
+      }
+
+      /* ---- Cart: Quick View → product page ---- */
+      document.querySelectorAll('.product-overlay-btn').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var card   = btn.closest('.product-card');
+          var nameEl = card && card.querySelector('.product-name[data-idx]');
+          if (!nameEl) return;
+          window.open('pages/products.html?id=' + nameEl.dataset.idx, '_blank');
+        });
+      });
+
+    })();
+  </script>
+</body>
+</html>
